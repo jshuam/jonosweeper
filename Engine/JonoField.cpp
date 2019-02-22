@@ -13,28 +13,17 @@ void JonoField::Draw(Graphics& gfx) const
 	{
 		for(fieldPos.x = 0; fieldPos.x < width; fieldPos.x++)
 		{
-			field[fieldPos.x + fieldPos.y * height].Draw(gfx);
+			field[fieldPos.x + fieldPos.y * height].Draw(Vei2(fieldPos.x * SpriteCodex::tileSize, fieldPos.y * SpriteCodex::tileSize), gfx);
 		}
 	}
 }
 
-JonoField::Tile::Tile()
-{
-	for(int i = 0; i < height; i++)
-	{
-		for(int j = 0; j < width; j++)
-		{
-			field[j + i * height].pos = Vei2(j, i);
-		}
-	}
-}
-
-void JonoField::Tile::Draw(Graphics& gfx) const
+void JonoField::Tile::Draw(Vei2 pos, Graphics& gfx) const
 {
 	switch(this->state)
 	{
 		case JonoField::Tile::State::Hidden:
-			SpriteCodex::DrawTileButton(this->pos, gfx);
+			SpriteCodex::DrawTileButton(pos, gfx);
 			break;
 		case JonoField::Tile::State::Revealed:
 			break;

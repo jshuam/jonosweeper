@@ -15,8 +15,8 @@ private:
 	class Tile
 	{
 	public:
-		Tile();
-		void Draw(Graphics& gfx) const;
+		Tile() = default;
+		void Draw(Vei2 pos, Graphics& gfx) const;
 		bool HasJono() const;
 
 	private:
@@ -30,7 +30,6 @@ private:
 	private:
 		bool hasJono = false;
 		State state = State::Hidden;
-		Vei2 pos;
 	};
 
 private:
@@ -38,5 +37,5 @@ private:
 	static constexpr int height = 20;
 	int mines;
 
-	static Tile field[width * height];
+	Tile field[width * height];
 };
