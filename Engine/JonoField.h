@@ -7,7 +7,7 @@
 class JonoField
 {
 public:
-	JonoField() = default;
+	JonoField(int mines);
 
 	void Draw(Graphics& gfx) const;
 
@@ -15,6 +15,7 @@ private:
 	class Tile
 	{
 	public:
+		Tile();
 		void Draw(Graphics& gfx) const;
 		bool HasJono() const;
 
@@ -35,7 +36,7 @@ private:
 private:
 	static constexpr int width = 20;
 	static constexpr int height = 20;
-	static constexpr int mines = 20;
+	int mines;
 
-	Tile field[width * height];
+	static Tile field[width * height];
 };
