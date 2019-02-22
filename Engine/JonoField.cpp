@@ -3,6 +3,7 @@
 JonoField::JonoField(int mines)
 {
 	this->mines = mines;
+	SpawnJonos();
 }
 
 void JonoField::Draw(Graphics& gfx) const
@@ -18,6 +19,26 @@ void JonoField::Draw(Graphics& gfx) const
 	}
 }
 
+void JonoField::SpawnJonos()
+{
+	std::random_device rd;
+	std::mt19937 mt(rd());
+	std::uniform_int_distribution<int> xDist(0, width);
+	std::uniform_int_distribution<int> yDist(0, height);
+
+	for(int i = 0; i < mines; i++)
+	{
+		Vei2 pos;
+		do
+		{
+			pos = Vei2(xDist(mt), yDist(mt));
+		}
+		while(field[pos.x * width + pos.y * height].HasJono());
+
+		field[pos.x * width + pos.y * height].SpawnJono();
+	}
+}
+
 void JonoField::Tile::Draw(Vei2 pos, Graphics& gfx) const
 {
 	switch(this->state)
@@ -26,15 +47,24 @@ void JonoField::Tile::Draw(Vei2 pos, Graphics& gfx) const
 			SpriteCodex::DrawTileButton(pos, gfx);
 			break;
 		case JonoField::Tile::State::Revealed:
+			SpriteCodex::DrawTileJono(pos, gfx);
 			break;
 		case JonoField::Tile::State::Flagged:
+			SpriteCodex::DrawTileButton(pos, gfx);
+			SpriteCodex::DrawTileFlag(pos, gfx);
 			break;
 		default:
 			break;
 	}
 }
 
+void JonoField::Tile::SpawnJono()
+{
+	state = JonoField::Tile::State::Revealed;
+	hasJono = true;
+}
+
 bool JonoField::Tile::HasJono() const
 {
-	return false;
+	return hasJono;
 }

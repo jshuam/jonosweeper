@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Graphics.h"
+#include <random>
 #include "SpriteCodex.h"
 #include "Vei2.h"
 
@@ -8,8 +9,8 @@ class JonoField
 {
 public:
 	JonoField(int mines);
-
 	void Draw(Graphics& gfx) const;
+	void SpawnJonos();
 
 private:
 	class Tile
@@ -17,6 +18,7 @@ private:
 	public:
 		Tile() = default;
 		void Draw(Vei2 pos, Graphics& gfx) const;
+		void SpawnJono();
 		bool HasJono() const;
 
 	private:
