@@ -39,9 +39,9 @@ private:
 	/*  User Functions              */
 	/********************************/
 private:
-	JonoField field;
 	MainWindow& wnd;
 	Graphics gfx;
+	JonoField field;
 	/********************************/
 	/*  User Variables              */
 	/********************************/
