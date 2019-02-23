@@ -25,7 +25,7 @@ Game::Game( MainWindow& wnd )
 	:
 	wnd( wnd ),
 	gfx( wnd ),
-	field( 20 )
+	field( 80 )
 {}
 
 void Game::Go()
@@ -38,9 +38,24 @@ void Game::Go()
 
 void Game::UpdateModel()
 {
-	if( wnd.mouse.LeftIsPressed() )
-	{;
-		field.RevealClickedTile( wnd.mouse.GetPos() );
+	while( !field.IsGameOver() &&  !wnd.mouse.IsEmpty() )
+	{
+		const auto e = wnd.mouse.Read();
+
+		if( e.GetType() == Mouse::Event::Type::LPress )
+		{
+			if( field.GetRect().Contains( wnd.mouse.GetPos() ) )
+			{
+				field.RevealClickedTile( wnd.mouse.GetPos() );
+			}
+		}
+		else if( e.GetType() == Mouse::Event::Type::RPress )
+		{
+			if( field.GetRect().Contains( wnd.mouse.GetPos() ) )
+			{
+				field.FlagClickedTile( wnd.mouse.GetPos() );
+			}
+		}
 	}
 }
 
