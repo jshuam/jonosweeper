@@ -50,8 +50,8 @@ void JonoField::RevealClickedTile( const Vei2& mousePos )
 	{
 		if( GetTile( mouseFieldPos ).HasJono() )
 		{
-			/*GetTile( mouseFieldPos ).Reveal();
-			gameOver = true;*/
+			GetTile( mouseFieldPos ).Reveal();
+			gameOver = true;
 		}
 		else
 		{
