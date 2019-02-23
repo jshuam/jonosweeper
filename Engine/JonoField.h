@@ -34,11 +34,13 @@ private:
 public:
 	JonoField( int mines );
 	void Draw( Graphics& gfx ) const;
+	void RevealClickedTile( const Vei2& mousePos );
 
 private:
 	Tile& GetTile( Vei2 pos );
 	const Tile& GetTile( Vei2 pos ) const;
 	RectI GetRect() const;
+	const Vei2& ConvertToFieldPos( const Vei2& pos ) const;
 
 private:
 	static constexpr int width = 20;

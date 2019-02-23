@@ -2,6 +2,7 @@
 
 JonoField::JonoField( int mines )
 {
+	assert( mines <= ( width* height ) - 100 );
 	std::random_device rd;
 	std::mt19937 mt( rd() );
 	std::uniform_int_distribution<int> xDist( 0, width - 1 );
@@ -14,9 +15,9 @@ JonoField::JonoField( int mines )
 		{
 			pos = Vei2( xDist( mt ), yDist( mt ) );
 		}
-		while( GetTile(pos).HasJono() );
+		while( GetTile( pos ).HasJono() );
 
-		GetTile(pos).SpawnJono();
+		GetTile( pos ).SpawnJono();
 	}
 }
 
@@ -28,8 +29,18 @@ void JonoField::Draw( Graphics& gfx ) const
 	{
 		for( fieldPos.x = 0; fieldPos.x < width; fieldPos.x++ )
 		{
-			GetTile(fieldPos).Draw( fieldPos * SpriteCodex::tileSize, gfx );
+			GetTile( fieldPos ).Draw( fieldPos * SpriteCodex::tileSize, gfx );
 		}
+	}
+}
+
+void JonoField::RevealClickedTile( const Vei2& mousePos )
+{
+	assert( mousePos.x <= width * SpriteCodex::tileSize && mousePos.y <= height * SpriteCodex::tileSize );
+	Vei2 mouseFieldPos = ConvertToFieldPos( mousePos );
+	if( !GetTile( mouseFieldPos ).IsRevealed() )
+	{
+		GetTile( mouseFieldPos ).Reveal();
 	}
 }
 
@@ -41,7 +52,14 @@ void JonoField::Tile::Draw( Vei2 pos, Graphics& gfx ) const
 			SpriteCodex::DrawTileButton( pos, gfx );
 			break;
 		case State::Revealed:
-			SpriteCodex::DrawTileJono( pos, gfx );
+			if( !HasJono() )
+			{
+				SpriteCodex::DrawTile0( pos, gfx );
+			}
+			else
+			{
+				SpriteCodex::DrawTileJono( pos, gfx );
+			}
 			break;
 		case State::Flagged:
 			SpriteCodex::DrawTileButton( pos, gfx );
@@ -54,15 +72,17 @@ void JonoField::Tile::Draw( Vei2 pos, Graphics& gfx ) const
 
 void JonoField::Tile::SpawnJono()
 {
+	assert( !hasJono );
 	hasJono = true;
 }
 
 void JonoField::Tile::Reveal()
 {
+	assert( state == State::Hidden );
 	state = State::Revealed;
 }
 
-bool JonoField::Tile::IsRevealed() 
+bool JonoField::Tile::IsRevealed()
 {
 	return state == State::Revealed;
 }
@@ -85,4 +105,9 @@ const JonoField::Tile& JonoField::GetTile( Vei2 pos ) const
 RectI JonoField::GetRect() const
 {
 	return RectI( 0, width * SpriteCodex::tileSize, 0, height * SpriteCodex::tileSize );
+}
+
+const Vei2& JonoField::ConvertToFieldPos( const Vei2& pos ) const
+{
+	return pos / SpriteCodex::tileSize;
 }
