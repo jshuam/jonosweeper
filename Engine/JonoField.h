@@ -7,21 +7,10 @@
 
 class JonoField
 {
-public:
-	JonoField(int mines);
-	void Draw(Graphics& gfx) const;
-	void SpawnJonos();
-
 private:
 	class Tile
 	{
 	public:
-		Tile() = default;
-		void Draw(Vei2 pos, Graphics& gfx) const;
-		void SpawnJono();
-		bool HasJono() const;
-
-	private:
 		enum class State
 		{
 			Hidden,
@@ -29,15 +18,28 @@ private:
 			Flagged
 		};
 
+	public:
+		void Draw( Vei2 pos, Graphics& gfx ) const;
+		void SpawnJono();
+		void Reveal();
+		bool IsRevealed();
+		bool HasJono() const;
+
 	private:
 		bool hasJono = false;
 		State state = State::Hidden;
 	};
 
+public:
+	JonoField( int mines );
+	void Draw( Graphics& gfx ) const;
+
+private:
+	Tile& GetTile( Vei2 pos );
+	const Tile& GetTile( Vei2 pos ) const;
+
 private:
 	static constexpr int width = 20;
 	static constexpr int height = 20;
-	int mines;
-
 	Tile field[width * height];
 };
