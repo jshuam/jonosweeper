@@ -50,7 +50,8 @@ void JonoField::RevealClickedTile( const Vei2& mousePos )
 	{
 		if( GetTile( mouseFieldPos ).HasJono() )
 		{
-			gameOver = true;
+			/*GetTile( mouseFieldPos ).Reveal();
+			gameOver = true;*/
 		}
 		else
 		{
@@ -116,7 +117,7 @@ void JonoField::Tile::Draw( Vei2 pos, Graphics& gfx, bool gameOver ) const
 			case State::Flagged:
 				if( !HasJono() )
 				{
-					SpriteCodex::DrawTileJono( pos, gfx );
+					SpriteCodex::DrawTileFlag( pos, gfx );
 					SpriteCodex::DrawTileCross( pos, gfx );
 				}
 				else
@@ -236,7 +237,7 @@ void JonoField::RevealNearbyJonos( const Vei2& fieldPos )
 	int endX = std::min( width - 1, fieldPos.x + 1 );
 	int endY = std::min( height - 1, fieldPos.y + 1 );
 
-	if( GetTile( fieldPos ).GetNearbyJonos() == 0 )
+	if( !GetTile( fieldPos ).IsFlagged() && GetTile( fieldPos ).GetNearbyJonos() == 0 )
 	{
 		GetTile( fieldPos ).Reveal();
 		for( Vei2 fieldPos = { startX, startY }; fieldPos.y <= endY; fieldPos.y++ )
@@ -250,7 +251,7 @@ void JonoField::RevealNearbyJonos( const Vei2& fieldPos )
 			}
 		}
 	}
-	else
+	else if( !GetTile( fieldPos ).IsFlagged() )
 	{
 		GetTile( fieldPos ).Reveal();
 	}
