@@ -22,7 +22,7 @@ JonoField::JonoField( int mines )
 
 void JonoField::Draw( Graphics& gfx ) const
 {
-	gfx.DrawRect( 0, 0, width * SpriteCodex::tileSize, height * SpriteCodex::tileSize, SpriteCodex::baseColor );
+	gfx.DrawRect( GetRect(), SpriteCodex::baseColor );
 
 	for( Vei2 fieldPos = { 0, 0 }; fieldPos.y < height; fieldPos.y++ )
 	{
@@ -55,7 +55,6 @@ void JonoField::Tile::Draw( Vei2 pos, Graphics& gfx ) const
 void JonoField::Tile::SpawnJono()
 {
 	hasJono = true;
-	state = State::Revealed;
 }
 
 void JonoField::Tile::Reveal()
@@ -81,4 +80,9 @@ JonoField::Tile& JonoField::GetTile( Vei2 pos )
 const JonoField::Tile& JonoField::GetTile( Vei2 pos ) const
 {
 	return field[pos.x + pos.y * width];
+}
+
+RectI JonoField::GetRect() const
+{
+	return RectI( 0, width * SpriteCodex::tileSize, 0, height * SpriteCodex::tileSize );
 }

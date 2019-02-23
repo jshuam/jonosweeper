@@ -1,5 +1,6 @@
 #pragma once
 
+#include <assert.h>
 #include "Graphics.h"
 #include <random>
 #include "SpriteCodex.h"
@@ -37,6 +38,7 @@ public:
 private:
 	Tile& GetTile( Vei2 pos );
 	const Tile& GetTile( Vei2 pos ) const;
+	RectI GetRect() const;
 
 private:
 	static constexpr int width = 20;
