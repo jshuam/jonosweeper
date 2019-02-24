@@ -41,7 +41,7 @@ private:
 private:
 	MainWindow& wnd;
 	Graphics gfx;
-	JonoField field;
+	JonoField jonoField;
 	/********************************/
 	/*  User Variables              */
 	/********************************/

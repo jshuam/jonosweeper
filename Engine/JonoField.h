@@ -3,6 +3,7 @@
 #include <assert.h>
 #include "Graphics.h"
 #include <random>
+#include "Sound.h"
 #include "SpriteCodex.h"
 #include "Vei2.h"
 
@@ -37,24 +38,32 @@ private:
 	};
 
 public:
-	JonoField( int mines );
+	JonoField( int width, int height );
+	~JonoField();
 	void Draw( Graphics& gfx ) const;
-	void RevealClickedTile( const Vei2& mousePos );
-	void FlagClickedTile( const Vei2& mousePos );
+	void RevealClickedTile( Vei2& mousePos );
+	void FlagClickedTile( Vei2& mousePos );
+	void ResetGame();
 	RectI GetRect() const;
 	bool IsGameOver() const;
 
 private:
 	Tile& GetTile( Vei2 pos );
 	const Tile& GetTile( Vei2 pos ) const;
-	const Vei2& ConvertToFieldPos( const Vei2& pos ) const;
+	const Vei2& ConvertToFieldPos( Vei2& pos ) const;
 	int CountNearbyJonos( const Vei2& fieldPos );
 	void RevealNearbyJonos( const Vei2& fieldPos );
+	void InitJonoField( const Vei2& mouseFieldPos );
 
 private:
-	static constexpr int width = 20;
-	static constexpr int height = 20;
-	Tile field[width * height];
-
+	int width = 0;
+	int height = 0;
+	int mines = 0;
+	int fieldOffsetX = 0;
+	int fieldOffsetY = 0;
+	Tile *field;
+	float minePercentage = 0.25f;
 	bool gameOver = false;
+	bool firstClick = true;
+	Sound gameOverSound = L"gameover.wav";
 };

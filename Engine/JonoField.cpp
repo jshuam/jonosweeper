@@ -1,32 +1,20 @@
 #include "JonoField.h"
 
-JonoField::JonoField( int mines )
+JonoField::JonoField( int width, int height )
 {
-	assert( mines <= ( width* height ) - 100 );
-	std::random_device rd;
-	std::mt19937 mt( rd() );
-	std::uniform_int_distribution<int> xDist( 0, width - 1 );
-	std::uniform_int_distribution<int> yDist( 0, height - 1 );
+	assert( width >= 0 && width <= Graphics::ScreenWidth );
+	assert( height >= 0 && height <= Graphics::ScreenHeight );
+	this->width = width;
+	this->height = height;
+	this->field = new Tile[width * height];
+	this->mines = ( width * height ) * minePercentage;
+	this->fieldOffsetX = ( Graphics::ScreenWidth / 2 ) - ( ( width * SpriteCodex::tileSize ) / 2 );
+	this->fieldOffsetY = ( Graphics::ScreenHeight / 2 ) - ( ( height * SpriteCodex::tileSize ) / 2 );
+}
 
-	for( int i = 0; i < mines; i++ )
-	{
-		Vei2 pos;
-		do
-		{
-			pos = Vei2( xDist( mt ), yDist( mt ) );
-		}
-		while( GetTile( pos ).HasJono() );
-
-		GetTile( pos ).SpawnJono();
-	}
-
-	for( Vei2 fieldPos = { 0, 0 }; fieldPos.y < height; fieldPos.y++ )
-	{
-		for( fieldPos.x = 0; fieldPos.x < width; fieldPos.x++ )
-		{
-			GetTile( fieldPos ).SetNearbyJonos( CountNearbyJonos( fieldPos ) );
-		}
-	}
+JonoField::~JonoField()
+{
+	delete[] field;
 }
 
 void JonoField::Draw( Graphics& gfx ) const
@@ -37,21 +25,40 @@ void JonoField::Draw( Graphics& gfx ) const
 	{
 		for( fieldPos.x = 0; fieldPos.x < width; fieldPos.x++ )
 		{
-			GetTile( fieldPos ).Draw( fieldPos * SpriteCodex::tileSize, gfx, gameOver );
+			Vei2 drawPos = fieldPos * SpriteCodex::tileSize;
+			drawPos.x += fieldOffsetX;
+			drawPos.y += fieldOffsetY;
+			GetTile( fieldPos ).Draw( drawPos, gfx, gameOver );
 		}
+	}
+
+	if( gameOver )
+	{
+		SpriteCodex::DrawRestartText( { 0, fieldOffsetY }, gfx );
+		SpriteCodex::DrawGameOver( { width * SpriteCodex::tileSize + fieldOffsetX, fieldOffsetY }, gfx );
 	}
 }
 
-void JonoField::RevealClickedTile( const Vei2& mousePos )
+void JonoField::RevealClickedTile( Vei2& mousePos )
 {
-	assert( mousePos.x <= width * SpriteCodex::tileSize && mousePos.y <= height * SpriteCodex::tileSize );
+	int boundWidth = width * SpriteCodex::tileSize + fieldOffsetX;
+	int boundHeight = height * SpriteCodex::tileSize + fieldOffsetY;
+	assert( mousePos.x >= fieldOffsetX &&  mousePos.x <= boundWidth && mousePos.y >= fieldOffsetY && mousePos.y <= boundHeight );
 	Vei2 mouseFieldPos = ConvertToFieldPos( mousePos );
+
+	if( firstClick )
+	{
+		InitJonoField( mouseFieldPos );
+		firstClick = false;
+	}
+
 	if( !GetTile( mouseFieldPos ).IsRevealed() && !GetTile( mouseFieldPos ).IsFlagged() )
 	{
 		if( GetTile( mouseFieldPos ).HasJono() )
 		{
 			GetTile( mouseFieldPos ).Reveal();
 			gameOver = true;
+			gameOverSound.Play(1.0f, 0.25f);
 		}
 		else
 		{
@@ -60,14 +67,25 @@ void JonoField::RevealClickedTile( const Vei2& mousePos )
 	}
 }
 
-void JonoField::FlagClickedTile( const Vei2& mousePos )
+void JonoField::FlagClickedTile( Vei2& mousePos )
 {
-	assert( mousePos.x <= width * SpriteCodex::tileSize && mousePos.y <= height * SpriteCodex::tileSize );
+	int boundWidth = width * SpriteCodex::tileSize + fieldOffsetX;
+	int boundHeight = height * SpriteCodex::tileSize + fieldOffsetY;
+	assert( mousePos.x >= fieldOffsetX && mousePos.x <= boundWidth && mousePos.y >= fieldOffsetY && mousePos.y <= boundHeight );
 	Vei2 mouseFieldPos = ConvertToFieldPos( mousePos );
 	if( !GetTile( mouseFieldPos ).IsRevealed() )
 	{
 		GetTile( mouseFieldPos ).ToggleFlag();
 	}
+}
+
+void JonoField::ResetGame()
+{
+	gameOverSound.StopAll();
+	gameOver = false;
+	firstClick = true;
+	delete[] field;
+	this->field = new Tile[width * height];
 }
 
 void JonoField::Tile::Draw( Vei2 pos, Graphics& gfx, bool gameOver ) const
@@ -195,7 +213,7 @@ const JonoField::Tile& JonoField::GetTile( Vei2 pos ) const
 
 RectI JonoField::GetRect() const
 {
-	return RectI( 0, width * SpriteCodex::tileSize, 0, height * SpriteCodex::tileSize );
+	return RectI( 0 + fieldOffsetX, width * SpriteCodex::tileSize + fieldOffsetX, 0 + fieldOffsetY, height * SpriteCodex::tileSize + fieldOffsetY );
 }
 
 bool JonoField::IsGameOver() const
@@ -203,8 +221,10 @@ bool JonoField::IsGameOver() const
 	return gameOver;
 }
 
-const Vei2& JonoField::ConvertToFieldPos( const Vei2& pos ) const
+const Vei2& JonoField::ConvertToFieldPos( Vei2& pos ) const
 {
+	pos.x -= fieldOffsetX;
+	pos.y -= fieldOffsetY;
 	return pos / SpriteCodex::tileSize;
 }
 
@@ -254,5 +274,40 @@ void JonoField::RevealNearbyJonos( const Vei2& fieldPos )
 	else if( !GetTile( fieldPos ).IsFlagged() )
 	{
 		GetTile( fieldPos ).Reveal();
+	}
+}
+
+void JonoField::InitJonoField( const Vei2& mouseFieldPos )
+{
+	int startX = std::max( 0, mouseFieldPos.x - 1 );
+	int startY = std::max( 0, mouseFieldPos.y - 1 );
+	int endX = std::min( width - 1, mouseFieldPos.x + 1 );
+	int endY = std::min( height - 1, mouseFieldPos.y + 1 );
+
+	std::random_device rd;
+	std::mt19937 mt( rd() );
+	std::uniform_int_distribution<int> xDist( 0, width - 1 );
+	std::uniform_int_distribution<int> yDist( 0, height - 1 );
+
+	for( int i = 0; i < mines; i++ )
+	{
+		Vei2 pos;
+		do
+		{
+			pos = Vei2( xDist( mt ), yDist( mt ) );
+		}
+		while( GetTile( pos ).HasJono() ||
+			   pos.x >= startX && pos.x <= endX &&
+			   pos.y >= startY && pos.y <= endY );
+
+		GetTile( pos ).SpawnJono();
+	}
+
+	for( Vei2 fieldPos = { 0, 0 }; fieldPos.y < height; fieldPos.y++ )
+	{
+		for( fieldPos.x = 0; fieldPos.x < width; fieldPos.x++ )
+		{
+			GetTile( fieldPos ).SetNearbyJonos( CountNearbyJonos( fieldPos ) );
+		}
 	}
 }

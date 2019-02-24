@@ -26,4 +26,6 @@ public:
 	static void DrawTileFlag( const Vei2& pos, Graphics& gfx );
 	static void DrawTileJono( const Vei2& pos, Graphics& gfx );
 	static void DrawTileJonoRed( const Vei2& pos, Graphics& gfx );
+	static void DrawRestartText( const Vei2& pos, Graphics& gfx );
+	static void DrawGameOver( const Vei2& pos, Graphics& gfx );
 };

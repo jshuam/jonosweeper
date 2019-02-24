@@ -25,7 +25,7 @@ Game::Game( MainWindow& wnd )
 	:
 	wnd( wnd ),
 	gfx( wnd ),
-	field( 80 )
+	jonoField( 20, 20 )
 {}
 
 void Game::Go()
@@ -38,22 +38,36 @@ void Game::Go()
 
 void Game::UpdateModel()
 {
-	while( !field.IsGameOver() &&  !wnd.mouse.IsEmpty() )
+	while( !jonoField.IsGameOver() &&  !wnd.mouse.IsEmpty() )
 	{
 		const auto e = wnd.mouse.Read();
 
 		if( e.GetType() == Mouse::Event::Type::LPress )
 		{
-			if( field.GetRect().Contains( wnd.mouse.GetPos() ) )
+			if( jonoField.GetRect().Contains( wnd.mouse.GetPos() ) )
 			{
-				field.RevealClickedTile( wnd.mouse.GetPos() );
+				jonoField.RevealClickedTile( wnd.mouse.GetPos() );
+				wnd.kbd.Flush();
 			}
 		}
 		else if( e.GetType() == Mouse::Event::Type::RPress )
 		{
-			if( field.GetRect().Contains( wnd.mouse.GetPos() ) )
+			if( jonoField.GetRect().Contains( wnd.mouse.GetPos() ) )
 			{
-				field.FlagClickedTile( wnd.mouse.GetPos() );
+				jonoField.FlagClickedTile( wnd.mouse.GetPos() );
+			}
+		}
+	}
+
+	while( jonoField.IsGameOver() && !wnd.kbd.KeyIsEmpty() )
+	{
+		const auto e = wnd.kbd.ReadKey();
+
+		if( e.IsRelease() )
+		{
+			if( e.GetCode() == VK_RETURN )
+			{
+				jonoField.ResetGame();
 			}
 		}
 	}
@@ -61,5 +75,5 @@ void Game::UpdateModel()
 
 void Game::ComposeFrame()
 {
-	field.Draw( gfx );
+	jonoField.Draw( gfx );
 }
